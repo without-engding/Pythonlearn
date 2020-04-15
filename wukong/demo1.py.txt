@@ -1,0 +1,36 @@
+from snowboy import snowboydecoder
+import sys
+import signal
+
+interrupted = False
+
+def signal_handler(signal, frame):
+    global interrupted
+    interrupted = True
+
+def interrupt_callback():
+    global interrupted
+    return interrupted
+def my_detected_callback():
+    print('hello')
+
+if len(sys.argv) == 1:
+    print("Error: need to specify model name")
+    print("Usage: python demo.py your.model")
+    sys.exit(-1)
+
+model = sys.argv[1]#sys.argv[1]获取外部命令，这里的model的选择来自终端的输入
+
+signal.signal(signal.SIGINT, signal_handler)
+
+detector = snowboydecoder.HotwordDetector(model, sensitivity=0.8)#sensitivity 表示识别的灵敏度，数值越高越灵敏
+print('Listening... Press Ctrl+C to exit')
+
+detector.start(detected_callback=my_detected_callback,
+               interrupt_check=interrupt_callback,
+               sleep_time=0.03)#让程序始终循环，第一个callback：唤醒之后的反映，源代码是语音ding，后期改为hello，函数写于代码中，sleeptime是指唤醒之后的休眠时间
+
+detector.terminate()
+#运行此文件的时候，终端命令如下：
+#source start.sh  打开虚拟空间，获得环境配置
+#python3 wukong.py snowboy/resources/nankong.pmdl'''
